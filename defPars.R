@@ -3,8 +3,21 @@
 #n's generally denote ratios
 #sigma's denote recycled biomass
 
+#Default time inputs
+defPars_t <- list(
+  length = 100, #Length of the model
+  dt = 0.1 #Length of a single time step at which to calculate a state
+)
+
+#Default initial environment inputs
+defPars_env <- list(
+  L=1, #Initial amount of available light
+  N=1, #Initial amount of available DIN
+  X=1 #Initial amount of available prey
+)
+
 #Host and Prey Parameters
-defPars_HX <- c(
+defPars_HX <- list(
   #Host
   j_HT0=0.03, #Maintenance rate of host biomass (1/d)
   n_NH=0.18, #N:C (Nitrogen to Carbon) molar ratio in host biomass (no units)
@@ -15,6 +28,8 @@ defPars_HX <- c(
   k_CO2=10, #Efficacy of CO2 delivery to photosynthesis by host CCMs (molCO2/molC/d)
   K_N=1.5e-6, #Half-saturation constant for host DIN uptake (molN/L)
   H_0=1, #Initial host biomass (CmolH)
+  j_eC0=10, #Initial excess carbon used to activate host CCMs (molC/CmolH/d)
+  j_HG0=0.25, #Initial host biomass formation rate (CmolH/CmolH/d)
   
   
   #Prey
@@ -24,7 +39,7 @@ defPars_HX <- c(
 )
 
 #Symbiont Parameters
-defPars_S <- c(
+defPars_S <- list(
   y_C=0.8, #Yield of biomass formation from carbon (C-mol mol C^-1)
   j_ST0=0.03, #Maintenance rate of symbiont biomass (C-mol S C-mol S^-1 d^-1)
   n_NS=0.13, #N:C ratio in symbiont biomass (no units)
