@@ -38,6 +38,7 @@ ui <- fluidPage(
                             choiceValues=list(0,1,2), choiceNames=
                             list("Min to Max", "Max to Min", "Sinusoid"))
                  ),
-    mainPanel()
+    mainPanel(plotOutput(outputId="growthPlot"),
+              dataTableOutput(outputId="table"))
   )
 )

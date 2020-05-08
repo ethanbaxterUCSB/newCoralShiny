@@ -5,8 +5,8 @@
 
 #Default time inputs
 defPars_t <- list(
-  length = 100, #Length of the model
-  dt = 0.1 #Length of a single time step at which to calculate a state
+  length = 365, #Length of the model
+  dt = 0.01 #Length of a single time step at which to calculate a state
 )
 
 #Default initial environment inputs
