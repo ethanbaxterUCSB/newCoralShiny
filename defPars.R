@@ -6,14 +6,14 @@
 #Default time inputs
 defPars_t <- list(
   length = 365, #Length of the model
-  dt = 0.01 #Length of a single time step at which to calculate a state
+  dt = 0.1 #Length of a single time step at which to calculate a state
 )
 
 #Default initial environment inputs
 defPars_env <- list(
-  L=1, #Initial amount of available light
-  N=1, #Initial amount of available DIN
-  X=1 #Initial amount of available prey
+  L=c(20,40), #Initial amount of available light
+  N=c(1,1), #Initial amount of available DIN
+  X=c(1,1) #Initial amount of available prey
 )
 
 #Host and Prey Parameters
@@ -22,7 +22,7 @@ defPars_HX <- list(
   j_HT0=0.03, #Maintenance rate of host biomass (1/d)
   n_NH=0.18, #N:C (Nitrogen to Carbon) molar ratio in host biomass (no units)
   sigma_NH=0.9, #Proportion of nitrogen turnover recycled in host (no units)
-  sigma_CH=0/1, #Proportion of host metabolic CO2 turnover recycled to photosynthesis (no units)
+  sigma_CH=0.1, #Proportion of host metabolic CO2 turnover recycled to photosynthesis (no units)
   j_Nm=0.035, #Maximum host DIN (Dissolved Inorganic Nitrogen) uptake rate (molN/CmolH/d)
   j_HGm=1, #Maximum specific host growth rate (CmolH/CmolH/d)
   k_CO2=10, #Efficacy of CO2 delivery to photosynthesis by host CCMs (molCO2/molC/d)

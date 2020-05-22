@@ -16,7 +16,7 @@ ui <- fluidPage(
                  
                  
                  sliderInput(inputId="L", label="Light", value= 
-                            c(defPars_env$L, defPars_env$L), min=0, max=100),
+                            defPars_env$L, min=0, max=100),
                  
                  radioButtons(inputId="Lf", label="Light Function",
                             choiceValues=list(0,1,2), choiceNames= 
@@ -24,7 +24,7 @@ ui <- fluidPage(
                  
                  
                  sliderInput(inputId="N", label="DIN", value= 
-                            c(defPars_env$N, defPars_env$N), min=0, max=100),
+                            defPars_env$N, min=0, max=100),
                  
                  radioButtons(inputId="Nf", label="DIN Function",
                             choiceValues=list(0,1,2), choiceNames= 
@@ -32,7 +32,7 @@ ui <- fluidPage(
                  
                  
                  sliderInput(inputId="X", label="Prey", value=
-                            c(defPars_env$X, defPars_env$X), min=0, max=100),
+                            defPars_env$X, min=0, max=100),
                  
                  radioButtons(inputId="Xf", label="Prey Function", 
                             choiceValues=list(0,1,2), choiceNames=
