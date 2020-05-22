@@ -27,6 +27,8 @@ server <- function(input, output) {
     coral <- runCoral(time=time, dt=input$dt, env=env,
              pars_HX=pars_HX, pars_S=pars_S)
     output$table <- renderDataTable(as.data.frame(coral))
-    output$growthPlot <- renderPlot(plot(x=time, y=coral$dH.Hdt))
+    output$dH.HdtPlot <- renderPlot(plot(x=time, y=coral$dH.Hdt))
+    output$dS.SdtPlot <- renderPlot(plot(x=time, y=coral$dS.Sdt))
+    output$ratio <-renderPlot(plot(x=time, y=coral$H/coral$S))
   })
 }
