@@ -20,7 +20,7 @@ defPars_env <- list(
 defPars_HX <- list(
   #Host
   j_HT0=0.03, #Maintenance rate of host biomass (1/d)
-  n_NH=0.18, #N:C (Nitrogen to Carbon) molar ratio in host biomass (no units)
+  n_NH=as.numeric(0.18), #N:C (Nitrogen to Carbon) molar ratio in host biomass (no units)
   sigma_NH=0.9, #Proportion of nitrogen turnover recycled in host (no units)
   sigma_CH=0.1, #Proportion of host metabolic CO2 turnover recycled to photosynthesis (no units)
   j_Nm=0.035, #Maximum host DIN (Dissolved Inorganic Nitrogen) uptake rate (molN/CmolH/d)
@@ -33,7 +33,7 @@ defPars_HX <- list(
   
   
   #Prey
-  n_NX=0.2, #N:C ratio in prey biomass (no units)
+  n_NX=as.numeric(0.2), #N:C ratio in prey biomass (no units)
   j_Xm=0.13, #Maximum specific host feeding rate (molX/CmolH/d)
   K_X=1e-6 #Half-saturation constant for host feeding (CmolX/L)
 )

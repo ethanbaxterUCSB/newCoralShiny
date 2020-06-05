@@ -38,9 +38,16 @@ ui <- fluidPage(
                             choiceValues=list(0,1,2), choiceNames=
                             list("Min to Max", "Max to Min", "Sinusoid"))
                  ),
-    mainPanel(plotOutput(outputId="dH.HdtPlot"),
+    mainPanel(plotOutput(outputId="jLPlot"),
+              plotOutput(outputId="dH.HdtPlot"),
               plotOutput(outputId="dS.SdtPlot"),
-              plotOutput(outputId="ratio"),
+              plotOutput(outputId="SPlot"),
+              plotOutput(outputId="S.tPlot"),
+              plotOutput(outputId="Hplot"),
+              plotOutput(outputId="ratioPlot"),
+              plotOutput(outputId="LPlot"),
+              plotOutput(outputId="NPlot"),
+              plotOutput(outputId="XPlot"),
               dataTableOutput(outputId="table"))
   )
 )
