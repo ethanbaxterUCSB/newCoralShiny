@@ -1,0 +1,5 @@
+R time:
+  start <- proc.time()
+  then do the operations you want to do
+  print(proc.time() - start)
+  
