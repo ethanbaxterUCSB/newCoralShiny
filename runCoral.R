@@ -7,7 +7,7 @@ synth <- function(substrateOne, substrateTwo, max) {
   B <- as.numeric(substrateTwo)
   max <- as.numeric(max)
   
-  if (A==0 && B==0) {return(0)}
+  if (A==0 & B==0) {return(0)}
   
   val <- (A * B * (A + B) * max)/(A^2 * B + A * B^2 + A^2 * max + A * B * max + B^2 * max)
   #val <- 1 / ((1 / max) + (1 / A) + (1 / B) - (1 / (A + B)))
@@ -33,6 +33,11 @@ alwaysPositive <- function(rejFlux) {
   
   return(max(0, rejFlux))
 }
+
+#Vectorized functions, allows for use with multiple symbionts 
+#(MMk does not need to be vectorized)
+v.synth <- Vectorize(synth)
+v.alwaysPositive <- Vectorize(alwaysPositive)
 
 #Function environment returns the initial environment given input lists time,
 #L, N, and X that each specify the behavior of the aspects of the environment 
@@ -87,13 +92,15 @@ environment <- function(time, L, N, X) {
 #state at a given time
 runCoral <- function(time, env, pars_HX, pars_S) {
   
+  nSymb <- as.numeric(ncol(pars_S))
+  
   #Create variable lists for Host
-  for(var in c("rho_N", "j_eC", "j_CO2", "j_HG","r_CH", "dH.Hdt", "dH.dt", "H", "HS")){
+  for(var in c("rho_N", "j_eC", "j_CO2", "j_HG","r_CH", "dH.Hdt", "dH.dt", "H", "HS", "SH")){
     assign(var, rep(NA, times=length(time)))
   }
   #Create variable lists for Symbiont
-  for (var in c("j_L", "j_CP", "j_eL", "j_NPQ", "j_SG", "rho_C", "j_ST", "r_CS", "c_ROS", "dS.Sdt", "dS.dt", "S", "SH", "S.t")) {
-    assign(var, rep(NA, times=length(time)))
+  for (var in c("j_L", "j_CP", "j_eL", "j_NPQ", "j_SG", "rho_C", "j_ST", "r_CS", "c_ROS", "dS.Sdt", "dS.dt", "S", "S.t")) {
+    assign(var, matrix(nrow = length(time), ncol = nSymb))
   }
   
   #Initial Host fluxes
@@ -112,25 +119,25 @@ runCoral <- function(time, env, pars_HX, pars_S) {
   dH.dt[1] <- dH.Hdt[1] * H[1] #Initial host instantaneous growth rate
   
   #Initial Symbiont fluxes
-  r_NS <- rep(x = pars_S$j_ST0 * pars_S$n_NS * pars_S$sigma_NS, times = length(time)) #Recycled Nitrogen from Symbiont turnover
+  r_NS <- matrix(pars_S["j_ST0",] * pars_S["n_NS",] * pars_S["sigma_NS",], nrow = length(time), ncol = nSymb) #Recycled Nitrogen from Symbiont turnover
   
-  j_L[1] <- env$L[1] * pars_S$aStar #Initial uptake of light
-  j_CP[1] <- alwaysPositive(rejFlux=(synth(substrateOne = j_L[1] * pars_S$y_CL, substrateTwo = j_CO2[1]*H[1]/pars_S$S_0, max = pars_S$j_CPm))) #Initial production of biomass from photosynthesis
-  j_eL[1] <- alwaysPositive(rejFlux=(j_L[1] - j_CP[1]/pars_S$y_CL)) #Excess light energy in the system
-  j_NPQ[1] <- pars_S$k_NPQ #Total capacity of nonphotochemical quenching
-  j_SG[1] <- pars_S$j_SGm/10 #Production of Symbiont biomass
-  rho_C[1] <- j_CP[1] #Fixed carbon shared with host
-  j_ST[1] <- pars_S$j_ST0 #Initial biomass turnover rate
-  r_CS[1] <- pars_S$j_ST0 * pars_S$sigma_CS #Recycled CO2 from symbiont
-  c_ROS[1] <- 1 #Reactive oxygen species production relative to baseline
+  j_L[1,] <- env$L[1] * pars_S["aStar",] #Initial uptake of light
+  j_CP[1,] <- v.alwaysPositive(rejFlux=(v.synth(substrateOne = j_L[1,] * pars_S["y_CL",], substrateTwo = j_CO2[1]*H[1]/pars_S["S_0",], max = pars_S["j_CPm",]))) #Initial production of biomass from photosynthesis
+  j_eL[1,] <- v.alwaysPositive(rejFlux=(j_L[1,] - j_CP[1,]/pars_S["y_CL",])) #Excess light energy in the system
+  j_NPQ[1,] <- pars_S["k_NPQ",] #Total capacity of nonphotochemical quenching
+  j_SG[1,] <- pars_S["j_SGm",]/10 #Production of Symbiont biomass
+  rho_C[1,] <- j_CP[1,] #Fixed carbon shared with host
+  j_ST[1,] <- pars_S["j_ST0",] #Initial biomass turnover rate
+  r_CS[1,] <- pars_S["j_ST0",] * pars_S["sigma_CS",] #Recycled CO2 from symbiont
+  c_ROS[1,] <- 1 #Reactive oxygen species production relative to baseline
   
-  dS.Sdt[1] <- pars_S$j_SGm #Symbiont specific instantaneus growth rate
-  S[1] <- pars_S$S_0 #Initial Symbiont biomass
-  dS.dt[1] <- dS.Sdt[1] * S[1]  #initial symbiont instantaneous growth rate
+  dS.Sdt[1,] <- pars_S["j_SGm",] #Symbiont specific instantaneus growth rate
+  S[1,] <- pars_S["S_0",] #Initial Symbiont biomass
+  dS.dt[1,] <- dS.Sdt[1,] * S[1,]  #initial symbiont instantaneous growth rate
   
-  HS[1] <- H[1]/S[1] #Initial host to symbiont biomass ratio
-  SH[1] <- S[1]/H[1] #Initial symbiont to host biomass ratio
-  S.t[1] <- sum(S[1]) #Initial total symbiont biomass
+  S.t[1] <- sum(S[1,]) #Initial total symbiont biomass
+  HS[1] <- H[1]/S.t[1] #Initial host to symbiont biomass ratio
+  SH[1] <- S.t[1]/H[1] #Initial symbiont to host biomass ratio
   
   dt <- time[2]-time[1] #timestep size
   
@@ -140,30 +147,30 @@ runCoral <- function(time, env, pars_HX, pars_S) {
     
     #Symbiont
     #--------
-    S.t[t] <- sum(S[t-1])  #Total Symbiont biomass
+    S.t[t] <- sum(S[t-1,])  #Total Symbiont biomass
     
-    j_L[t] <- (1.256307 + 1.385969 * exp(-6.479055 * S.t[t]/H[t-1])) * env$L[t] * pars_S$aStar #New uptake of light into symbiont
-    r_CS[t] <- pars_S$sigma_CS * (pars_S$j_ST0 + (1-pars_S$y_C)*j_SG[t-1]/pars_S$y_C) #New metabolic CO2 from biomass turnover
-    j_CP[t] <- synth(substrateOne = (j_L[t] * pars_S$y_CL), substrateTwo = ((j_CO2[t-1] + r_CH[t-1])*H[t-1]/S.t[t] + r_CS[t]), max = (pars_S$j_CPm)) / c_ROS[t-1] #New photosynthesis rate
-    j_eL[t] <- alwaysPositive(rejFlux = (j_L[t] - j_CP[t]/pars_S$y_CL)) #Excess light energy in the system
-    j_NPQ[t] <- (pars_S$k_NPQ^(-1)+j_eL[t]^(-1))^(-1) #New capacity for nonphotochemical quenching
-    c_ROS[t] <- 1 + (alwaysPositive(rejFlux = j_eL[t] - j_NPQ[t]) / pars_S$k_ROS)^pars_S$k #Creation of ROS relative to baseline levels
-    j_SG[t] <- synth(substrateOne = (pars_S$y_C*j_CP[t]), substrateTwo = ((rho_N[t-1]*H[t-1]/S.t[t] + r_NS[t])/pars_S$n_NS), max = (pars_S$j_SGm)) #Biomass production of Symbiont
-    rho_C[t] <- alwaysPositive(rejFlux = (j_CP[t] - j_SG[t]/pars_S$y_C)) #Symbiont produced carbon shared with Host
-    j_ST[t] <- pars_S$j_ST0 * (1 + pars_S$b * (c_ROS[t] - 1)) #Symbiont biomass turnover rate
+    j_L[t,] <- (1.256307 + 1.385969 * exp(-6.479055 * S.t[t]/H[t-1])) * env$L[t] * pars_S["aStar",] #New uptake of light into symbiont
+    r_CS[t,] <- pars_S["sigma_CS",] * (pars_S["j_ST0",] + (1-pars_S["y_C",])*j_SG[t-1.]/pars_S["y_C",]) #New metabolic CO2 from biomass turnover
+    j_CP[t,] <- v.synth(substrateOne = (j_L[t,] * pars_S["y_CL",]), substrateTwo = ((j_CO2[t-1] + r_CH[t-1])*H[t-1]/S.t[t] + r_CS[t,]), max = (pars_S["j_CPm",])) / c_ROS[t-1,] #New photosynthesis rate
+    j_eL[t,] <- v.alwaysPositive(rejFlux = (j_L[t,] - j_CP[t,]/pars_S["y_CL",])) #Excess light energy in the system
+    j_NPQ[t,] <- (pars_S["k_NPQ",]^(-1)+j_eL[t,]^(-1))^(-1) #New capacity for nonphotochemical quenching
+    c_ROS[t,] <- 1 + (v.alwaysPositive(rejFlux = j_eL[t,] - j_NPQ[t,]) / pars_S["k_ROS",])^pars_S["k",] #Creation of ROS relative to baseline levels
+    j_SG[t,] <- v.synth(substrateOne = (pars_S["y_C",]*j_CP[t,]), substrateTwo = ((rho_N[t-1]*H[t-1]/S.t[t] + r_NS[t,])/pars_S["n_NS",]), max = (pars_S["j_SGm",])) #Biomass production of Symbiont
+    rho_C[t,] <- v.alwaysPositive(rejFlux = (j_CP[t,] - j_SG[t,]/pars_S["y_C",])) #Symbiont produced carbon shared with Host
+    j_ST[t,] <- pars_S["j_ST0",] * (1 + pars_S["b",] * (c_ROS[t,] - 1)) #Symbiont biomass turnover rate
     
-    dS.Sdt[t] <- j_SG[t] - j_ST[t] #Specific Instantaneous Symbiont growth rate
-    dS.dt[t] <- dS.Sdt[t] * S[t-1] #Instantaneous Symbiont growth rate
-    S[t] <- S[t-1] + dS.dt[t] * dt #Symbiont biomass at time t
+    dS.Sdt[t,] <- j_SG[t,] - j_ST[t,] #Specific Instantaneous Symbiont growth rate
+    dS.dt[t,] <- dS.Sdt[t,] * S[t-1,] #Instantaneous Symbiont growth rate
+    S[t,] <- S[t-1,] + dS.dt[t,] * dt #Symbiont biomass at time t
     
-    rho_C.t <- sum(rho_C[t]*S[t-1]) #Symbiont use of carbon
+    rho_C.t <- sum(rho_C[t,]*S[t-1,]) #Fixed carbon shared with host
     
     #Host
     #----
-    j_HG[t] <- synth(substrateOne = (pars_S$y_C * (rho_C.t/H[t-1] + j_X[t])), substrateTwo = ((j_N[t] + pars_HX$n_NX*j_X[t] + r_NH[t]) / pars_HX$n_NH), max = (pars_HX$j_HGm)) #Host biomass production rate
-    rho_N[t] <- max((j_N[t] + pars_HX$n_NX * j_X[t] + r_NH[t] - pars_HX$n_NH * j_HG[t]), 0) #Nitrogen shared with Symbiont
-    j_eC[t] <- max((j_X[t] + rho_C.t/H[t-1] - j_HG[t]/pars_S$y_C), 0) #Excess carbon in the system
-    r_CH[t] <- pars_HX$sigma_CH * (pars_HX$j_HT0 + (1-pars_S$y_C)*j_HG[t]/pars_S$y_C) #Recycled CO2 from host
+    j_HG[t] <- synth(substrateOne = (pars_HX$y_C * (rho_C.t/H[t-1] + j_X[t])), substrateTwo = ((j_N[t] + pars_HX$n_NX * j_X[t] + r_NH[t]) / pars_HX$n_NH), max = (pars_HX$j_HGm)) #Host biomass production rate
+    rho_N[t] <- alwaysPositive(j_N[t] + pars_HX$n_NX * j_X[t] + r_NH[t] - pars_HX$n_NH * j_HG[t]) #Nitrogen shared with Symbiont
+    j_eC[t] <- alwaysPositive(j_X[t] + rho_C.t/H[t-1] - j_HG[t] / pars_HX$y_C) #Excess carbon in the system
+    r_CH[t] <- pars_HX$sigma_CH * (pars_HX$j_HT0 + (1-pars_HX$y_C) * j_HG[t] / pars_HX$y_C) #Recycled CO2 from host
     j_CO2[t] <- pars_HX$k_CO2 * j_eC[t] #CO2 sent from host CCMs to symbiont
     
     dH.Hdt[t] <- j_HG[t] - pars_HX$j_HT0 #Specific Instantaneous Host growth rate
@@ -175,7 +182,7 @@ runCoral <- function(time, env, pars_HX, pars_S) {
   }
   
   #Generate and Return output
-  return(list(time=time, L=env$L, N=env$N, j_X=j_X, j_N=j_N, r_NH=r_NH, rho_N=rho_N, j_eC=j_eC, j_CO2=j_CO2, 
+  return(list(time=time, j_X=j_X, j_N=j_N, r_NH=r_NH, rho_N=rho_N, j_eC=j_eC, j_CO2=j_CO2, 
        j_HG=j_HG, r_CH=r_CH, dH.Hdt=dH.Hdt, dH.dt=dH.dt, H=H, r_NS=r_NS, j_L=j_L, 
        j_CP=j_CP, j_eL=j_eL, j_NPQ=j_NPQ, j_SG=j_SG, rho_C=rho_C, j_ST=j_ST, 
        r_CS=r_CS, c_ROS=c_ROS, dS.Sdt=dS.Sdt, dS.dt=dS.dt, S=S, HS=HS, SH=SH, S.t=S.t))
