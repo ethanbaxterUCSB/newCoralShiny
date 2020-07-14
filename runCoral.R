@@ -94,12 +94,12 @@ runCoral <- function(time, env, pars_HX, pars_S) {
   
   nSymb <- as.numeric(ncol(pars_S))
   
-  #Create variable lists for Host
-  for(var in c("rho_N", "j_eC", "j_CO2", "j_HG","r_CH", "dH.Hdt", "dH.dt", "H", "HS", "SH")){
+  #Create lists
+  for(var in c("rho_N", "j_eC", "j_CO2", "j_HG","r_CH", "dH.Hdt", "dH.dt", "H", "SH", "HS", "S.t")){
     assign(var, rep(NA, times=length(time)))
   }
-  #Create variable lists for Symbiont
-  for (var in c("j_L", "j_CP", "j_eL", "j_NPQ", "j_SG", "rho_C", "j_ST", "r_CS", "c_ROS", "dS.Sdt", "dS.dt", "S", "S.t")) {
+  #Create matrices
+  for (var in c("j_L", "j_CP", "j_eL", "j_NPQ", "j_SG", "rho_C", "j_ST", "r_CS", "c_ROS", "dS.Sdt", "dS.dt", "S")) {
     assign(var, matrix(nrow = length(time), ncol = nSymb))
   }
   
@@ -182,7 +182,7 @@ runCoral <- function(time, env, pars_HX, pars_S) {
   }
   
   #Generate and Return output
-  return(list(time=time, j_X=j_X, j_N=j_N, r_NH=r_NH, rho_N=rho_N, j_eC=j_eC, j_CO2=j_CO2, 
+  return(list(L=env$L, N=env$N, X=env$X, j_X=j_X, j_N=j_N, r_NH=r_NH, rho_N=rho_N, j_eC=j_eC, j_CO2=j_CO2, 
        j_HG=j_HG, r_CH=r_CH, dH.Hdt=dH.Hdt, dH.dt=dH.dt, H=H, r_NS=r_NS, j_L=j_L, 
        j_CP=j_CP, j_eL=j_eL, j_NPQ=j_NPQ, j_SG=j_SG, rho_C=rho_C, j_ST=j_ST, 
        r_CS=r_CS, c_ROS=c_ROS, dS.Sdt=dS.Sdt, dS.dt=dS.dt, S=S, HS=HS, SH=SH, S.t=S.t))

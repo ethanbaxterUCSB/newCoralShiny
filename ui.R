@@ -13,6 +13,8 @@ ui <- fluidPage(
                  
         numericInput(inputId="modelLength", 
                     label="Model Length", defPars_t$length),
+        
+        helpText("Model length is measured in days."),
                  
                  
         numericInput(inputId="dt",label="dt", value=defPars_t$dt),
@@ -20,15 +22,16 @@ ui <- fluidPage(
                  
         sliderInput(inputId="L", label="Light", value= 
                     defPars_env$L, min=0, max=100),
+        helpText("Light is measured in mol photons."),
                  
         radioButtons(inputId="Lf", label="Light Function",
                     choiceValues=list(0,1,2), choiceNames= 
                     list("Min to Max", "Max to Min", "Sinusoid")),
                  
-                 
         sliderInput(inputId="N", label="DIN", value= 
                     defPars_env$N, min=0, max=100),
-                 
+        helpText("DIN input is multiplied by 1e^-7 in calculations. Units are mol N."),         
+        
         radioButtons(inputId="Nf", label="DIN Function",
                     choiceValues=list(0,1,2), choiceNames= 
                     list("Min to Max", "Max to Min", "Sinusoid")),
@@ -36,6 +39,8 @@ ui <- fluidPage(
                  
         sliderInput(inputId="X", label="Prey", value=
                     defPars_env$X, min=0, max=100),
+        
+        helpText("Prey population input is multiplied by 1e^-8 in calculations. Units are mol Prey."),
                  
         radioButtons(inputId="Xf", label="Prey Function", 
                     choiceValues=list(0,1,2), choiceNames=
@@ -76,25 +81,50 @@ ui <- fluidPage(
                        uiOutput("symbPars"))
               )
             ),
+            tabPanel("Plots",
+                     helpText("Selected Plots will be shown in the model tab after the model is run. If no plots are selected, the plots from the previous run will be preserved."),
+                     fluidPage(
+                       fluidRow(
+                         column(3,
+                                checkboxInput(inputId = "plot.L", label = "Light", value = F),
+                                checkboxInput(inputId = "plot.N", label = "DIN", value = F),
+                                checkboxInput(inputId = "plot.X", label = "Prey", value = F),
+                                checkboxInput(inputId = "plot.j_X", label = "j_X", value = F),
+                                checkboxInput(inputId = "plot.j_N", label = "j_N", value = F),
+                                checkboxInput(inputId = "plot.r_NH", label = "r_NH", value = F),
+                                checkboxInput(inputId = "plot.rho_N", label = "rho_N", value = F)),
+                         column(3,
+                                checkboxInput(inputId = "plot.j_eC", label = "j_eC", value = F),
+                                checkboxInput(inputId = "plot.j_CO2", label = "j_CO2", value = F),
+                                checkboxInput(inputId = "plot.j_HG", label = "j_HG", value = F),
+                                checkboxInput(inputId = "plot.r_CH", label = "r_CH", value = F),
+                                checkboxInput(inputId = "plot.dH.Hdt", label = "dH.Hdt", value = T),
+                                checkboxInput(inputId = "plot.dH.dt", label = "dH.dt", value = F),
+                                checkboxInput(inputId = "plot.H", label = "H", value = T)),
+                         column(3,
+                                checkboxInput(inputId = "plot.j_L", label = "j_L", value = F),
+                                checkboxInput(inputId = "plot.j_CP", label = "j_CP", value = F),
+                                checkboxInput(inputId = "plot.j_eL", label = "j_eL", value = F),
+                                checkboxInput(inputId = "plot.j_NPQ", label = "j_NPQ", value = F),
+                                checkboxInput(inputId = "plot.j_SG", label = "j_SG", value = F),
+                                checkboxInput(inputId = "plot.rho_C", label = "rho_C", value = F),
+                                checkboxInput(inputId = "plot.j_ST", label = "j_ST", value = F)),
+                         column(3,
+                                checkboxInput(inputId = "plot.r_CS", label = "r_CS", value = F),
+                                checkboxInput(inputId = "plot.c_ROS", label = "c_ROS", value = F),
+                                checkboxInput(inputId = "plot.dS.Sdt", label = "dS.Sdt", value = T),
+                                checkboxInput(inputId = "plot.dS.dt", label = "dS.dt", value = F),
+                                checkboxInput(inputId = "plot.S", label = "S", value = T),
+                                checkboxInput(inputId = "plot.S.t", label = "S.t", value = F),
+                                checkboxInput(inputId = "plot.HS", label = "HS", value = F),
+                                checkboxInput(inputId = "plot.SH", label = "SH", value = T))
+                     )
+                  )
+            ),
             tabPanel("Model",
                      actionButton(inputId="run", label="Run"),
                      textOutput(outputId="time"),
-                     fluidRow(
-                       column(6,
-                              plotOutput(outputId="dH.HdtPlot"),
-                              plotOutput(outputId="HPlot")
-                       ),
-                       column(6,
-                              plotOutput(outputId="dS.SdtPlot"),
-                              plotOutput(outputId="SPlot")
-                       )
-                     ),
-                     plotOutput(outputId="SHPlot"),
-                     fluidRow(
-                       column(4, plotOutput(outputId="LPlot")),
-                       column(4, plotOutput(outputId="NPlot")),
-                       column(4, plotOutput(outputId="XPlot"))
-                     )
+                     uiOutput("plots")
             )
         )
       )

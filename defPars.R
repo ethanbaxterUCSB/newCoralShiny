@@ -12,8 +12,8 @@ defPars_t <- list(
 #Default initial environment inputs
 defPars_env <- list(
   L=c(20,40), #Initial amount of available light
-  N=c(1,1), #Initial amount of available DIN
-  X=c(1,1) #Initial amount of available prey
+  N=c(10,10), #Initial amount of available DIN
+  X=c(10,10) #Initial amount of available prey
 )
 
 #Host and Prey Parameters

@@ -17,10 +17,13 @@ multiPlot <- function(time, myMat, main, ylab) {
   plot(x = time, y = myMat[,1], type = "l", lwd = 2, main = main, xlab = xScript, ylab = ylab,
        ylim = dataRange(myMat))
   if(ncol(myMat) > 1) {
+    text(x = time[length(time)/2], y = dataRange(myMat)[2], labels = "Symbiont 1", col = 1, pos = 1, offset = 0)
     for (s in 2:ncol(myMat)) {
       lines(x = time, y = myMat[,s], col = s, lwd = 2)
+      text(x = time[length(time)/2], y = dataRange(myMat)[2], labels = paste("Symbiont", s), col = s, pos = 1, offset = s-1)
     }
   }
+  
 }
 
 #Begin Plots
@@ -66,7 +69,7 @@ coralPlots.rho_N <- function(time, rho_N) {singlePlot(time = time,
                                                       ylab = "rho_N (mol N / C-mol H / d")}
 
 coralPlots.j_eC <- function(time, j_eC) {singlePlot(time = time, 
-                                                    y = j_eC, 
+                                                    myList = j_eC, 
                                                     main = "Excess Carbon Used to Activate Host CCMs", 
                                                     ylab = "j_eC (mol C / C-mol H / d)")}
 
@@ -95,21 +98,27 @@ coralPlots.dH.dt <- function(time, dH.dt) {singlePlot(time = time,
                                                       main = "Host Growth Rate", 
                                                       ylab = "dH.dt (C-mol H / d)")}
 
-
 coralPlots.H <- function(time, H) {singlePlot(time = time, 
                                               myList = H, 
                                               main = "Host Biomass", 
                                               ylab = "H (C-mol H)")}
 
 coralPlots.HS <- function(time, HS) {singlePlot(time = time, 
-                                                myList = HS, 
-                                                main = "Host to Total Symbiont Biomass Ratio", 
-                                                ylab = "H / S.t (C-mol H / C-mol S)")}
+                                               myList = HS, 
+                                               main = "Host to Total Symbiont Biomass Ratio", 
+                                               ylab = "H / S.t (C-mol H / C-mol S)")}
 
 coralPlots.SH <- function(time, SH) {singlePlot(time = time, 
-                                                myList = SH, 
-                                                main = "Total Symbiont to Host Biomass Ratio", 
-                                                ylab = "S.t / H (C-mol S / C-mol H)")}
+                                               myList = SH, 
+                                               main = "Total Symbiont to Host Biomass Ratio", 
+                                               ylab = "S.t / H (C-mol S / C-mol H)")}
+
+coralPlots.S.t <- function(time, S.t) {singlePlot(time = time,
+                                                 myList = S.t,
+                                                 main = "Total Symbiont Biomass",
+                                                 ylab = "S.t (C-mol S)")}
+
+
 #End Single-line plots
 #
 #
@@ -174,8 +183,3 @@ coralPlots.S <- function(time, S) {multiPlot(time = time,
                                              myMat = S,
                                              main = "Symbiont Biomass",
                                              ylab = "S (C-mol S)")}
-
-coralPlots.S.t <- function(time, S.t) {multiPlot(time = time,
-                                                 myMat = S.t,
-                                                 main = "Total Symbiont Biomass",
-                                                 ylab = "S.t (C-mol S)")}

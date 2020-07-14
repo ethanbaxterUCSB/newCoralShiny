@@ -8,10 +8,10 @@ run <- {
   N <- c(1e-6,1e-6,0)
   X <- c(1e-7,1e-7,0)
   env <- environment(time, L, N, X)
-  coral <- runCoral(time, env, defPars_HX, defPars_S(1))
+  coral <- runCoral(time, env, defPars_HX, defPars_S(3))
   
-  coralPlots.S(time = time, S = coral$S)
+  coralPlots.S.t(time = time, S = coral$S.t)
   
 }
 
-as.data.frame(runCoral(time, env, defPars_HX, defPars_S(1)))
+as.data.frame(runCoral(time, env, defPars_HX, defPars_S(3)))

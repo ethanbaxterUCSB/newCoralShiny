@@ -53,8 +53,8 @@ server <- function(input, output) {
     start <- proc.time()[3]
     #Create environment descriptor lists from inputs
     L <- c(as.numeric(input$L[1]), as.numeric(input$L[2]), as.numeric(input$Lf))
-    N <- c(as.numeric(input$N[1])*10^-6, as.numeric(input$N[2])*10^-6, as.numeric(input$Nf))
-    X <- c(as.numeric(input$X[1])*10^-7, as.numeric(input$X[2])*10^-7, as.numeric(input$Xf))
+    N <- c(as.numeric(input$N[1])*10^-7, as.numeric(input$N[2])*10^-6, as.numeric(input$Nf))
+    X <- c(as.numeric(input$X[1])*10^-8, as.numeric(input$X[2])*10^-7, as.numeric(input$Xf))
     
     #Create time vector from inputs
     time <- seq(0,input$modelLength,input$dt)
@@ -71,16 +71,58 @@ server <- function(input, output) {
     #Create data presentation
     vec <- 3:length(time)
     
-    output$dH.HdtPlot <- renderPlot(coralPlots.dH.Hdt(time = time, dH.Hdt = coral$dH.Hdt))
-    output$dS.SdtPlot <- renderPlot(coralPlots.dS.Sdt(time = time, dS.Sdt = coral$dS.Sdt))
-    output$HPlot <- renderPlot(coralPlots.H(time = time, H = coral$H))
-    output$SPlot <- renderPlot(coralPlots.S(time = time, S = coral$S))
-    output$SHPlot <- renderPlot(coralPlots.SH(time = time, SH = coral$SH))
-    output$LPlot <- renderPlot(coralPlots.L(time = time, L = env$L))
-    output$NPlot <- renderPlot(coralPlots.N(time = time, N = env$N))
-    output$XPlot <- renderPlot(coralPlots.X(time = time, X = env$X))
+    varNames <- c("L", "N", "X", "j_X", "j_N", "r_NH", "rho_N", "j_eC", "j_CO2", "j_HG","r_CH", "dH.Hdt", "dH.dt", 
+                       "H", "j_L", "j_CP", "j_eL", "j_NPQ", "j_SG", "rho_C", "j_ST", "r_CS", "c_ROS", "dS.Sdt", 
+                       "dS.dt", "S", "S.t", "SH", "HS")
+    plotFuncNames <- varNames
+    plotNamesIn <- varNames
     
-    output$parsOut <- renderDataTable(as.data.frame(pars$S))
+    #Format plotFuncNames, plotNamesIn, and plotNamesOut
+    for (n in 1:length(varNames)) {
+      plotNamesIn[n] <- paste0("plot.", varNames[n])
+      plotFuncNames[n] <- paste0("coralPlots.", varNames[n])
+    }
+    
+    #Logical vector of which plots to render
+    toPlot <- unlist(lapply(reactiveValuesToList(input)[plotNamesIn], 
+                     function(i) {unlist(i)}))
+    
+    #Get number of plots to be rendered
+    numPlots <- {
+      n <- 0
+      for (bool in toPlot) {
+        if (bool) {
+          n <- n + 1
+        }
+      }
+      n
+    }
+    
+    if (numPlots > 0) {
+    
+      #Instert number of plots to UI
+      output$plots <- renderUI({
+        outList <- lapply(1:numPlots, function(i) {
+          plotName <- paste0("plot", i)
+          plotOutput(plotName, height = 280, width = 560)
+        })
+        tagList(outList)
+      })
+    
+      #Shorten function name vector with toPlot
+      plotFuncNames <- plotFuncNames[toPlot]
+      modifiedNames <- varNames[toPlot]
+      
+      for (i in 1:numPlots) {
+        local({
+          myI <- i
+          output[[paste0("plot", myI)]] <- renderPlot(do.call(plotFuncNames[myI], list(time, as.matrix(get(modifiedNames[myI], coral)))))
+        })
+      }
+    }
+    
+    
+    
     
     output$time <- renderText(paste("Time to complete (including time to plot): ", proc.time()[3]-start, " seconds"))
   })
@@ -132,5 +174,4 @@ server <- function(input, output) {
     
     return(list(HX = HX, S = S))
   }
-  
 }
