@@ -10,7 +10,7 @@ ui <- fluidPage(
   sidebarLayout(
       
     sidebarPanel(width = 3,
-                 
+        actionButton(inputId="run", label="Run"),         
         numericInput(inputId="modelLength", 
                     label="Model Length", defPars_t$length),
         
@@ -47,41 +47,42 @@ ui <- fluidPage(
                     list("Min to Max", "Max to Min", "Sinusoid"))),
     
         mainPanel(
-          tabsetPanel(
+          tabsetPanel(id = "mainPanel",
         
             tabPanel("Parameters",
               conditionalPanel(condition = "input.run==0", textOutput(outputId="welcome")),
               fluidRow(
-                column(6, "Host Parameters",
+                column(6, h3("Host Parameters"),
                   fluidRow(
                     column(6,
-                      numericInput(inputId = "j_HT0", label = "j_HT0", value = defPars_HX$j_HT0),
-                      numericInput(inputId = "n_NH", label = "n_NH", value = defPars_HX$n_NH),
-                      numericInput(inputId = "sigma_NH", label = "sigma_NH", value = defPars_HX$sigma_NH),
-                      numericInput(inputId = "sigma_CH", label = "sigma_CH", value = defPars_HX$sigma_CH),
-                      numericInput(inputId = "j_Nm", label = "j_Nm", value = defPars_HX$j_Nm),
-                      numericInput(inputId = "j_HGm", label = "j_HGm", value = defPars_HX$j_HGm),
-                      numericInput(inputId = "k_CO2", label = "k_CO2", value = defPars_HX$k_CO2)
+                      numericInput(inputId = "j_HT0", label = div("j_HT0", span(helpText("Host biomass turnover rate (1/d)", style = "font-size:8pt"))), value = defPars_HX$j_HT0, step = 0.01),
+                      numericInput(inputId = "n_NH", label = div("n_NH", span(helpText("Molar N:C ratio in host biomass (no units)", style = "font-size:8pt"))), value = defPars_HX$n_NH, step = 0.01),
+                      numericInput(inputId = "sigma_NH", label = div("sigma_NH", span(helpText("Proportion of Nitrogen recycled from host biomass (no units)", style = "font-size:8pt"))), value = defPars_HX$sigma_NH, step = 0.01),
+                      numericInput(inputId = "sigma_CH", label = div("sigma_CH", span(helpText("Proportion of metabolic CO2 recycled to photosynthesis (no units)", style = "font-size:8pt"))), value = defPars_HX$sigma_CH, step = 0.01),
+                      numericInput(inputId = "j_Nm", label = div("j_Nm", span(helpText("Maximum uptake of DIN into host (mol N/C-mol H/d)", style = "font-size:8pt"))), value = defPars_HX$j_Nm, step = 0.001),
+                      numericInput(inputId = "j_HGm", label = div("j_HGm", span(helpText("Maximum specific biomass synthesis of host (C-mol H/C-mol H/d)", style = "font-size:8pt"))), value = defPars_HX$j_HGm, step = 0.1),
+                      numericInput(inputId = "k_CO2", label = div("k_CO2", span(helpText("Efficacy of CO2 transfer to symbiont photosynthesis (mol CO2/mol C)", style = "font-size:8pt"))), value = defPars_HX$k_CO2, step = 0.1)
                     ),
                     column(6,
-                      numericInput(inputId = "K_N", label = "K_N", value = defPars_HX$K_N),
-                      numericInput(inputId = "H_0", label = "H_0", value = defPars_HX$H_0),
-                      numericInput(inputId = "j_eC0", label = "j_eC0", value = defPars_HX$j_eC0),
-                      numericInput(inputId = "j_HG0", label = "j_HG0", value = defPars_HX$j_HG0),
-                      numericInput(inputId = "y_C", label = "y_C", value = defPars_HX$y_C),
+                      numericInput(inputId = "K_N", label = div("K_N", span(helpText("Half-Saturation constant for host DIN uptake (mol N/L)", style = "font-size:8pt"))), value = defPars_HX$K_N, step = 1e-7),
+                      numericInput(inputId = "H_0", label = div("H_0", span(helpText("Initial host biomass (C-mol H)", style = "font-size:8pt"))), value = defPars_HX$H_0, step = 0.1),
+                      numericInput(inputId = "j_eC0", label = div("j_eC0", span(helpText("Initial excess Carbon flux to symbiont(s) (mol C/C-mol H/d)", style = "font-size:8pt"))), value = defPars_HX$j_eC0, step = 0.1),
+                      numericInput(inputId = "j_HG0", label = div("j_HG0", span(helpText("Initial host specific biomass synthesis rate (C-mol H/C-mol H/d)", style = "font-size:8pt"))), value = defPars_HX$j_HG0, step = 0.01),
+                      numericInput(inputId = "y_C", label = div("y_C", span(helpText("Efficiency of biomass synthesis (C-mol/mol C)", style = "font-size:8pt"))), value = defPars_HX$y_C, step = 0.01),
                 
-                      numericInput(inputId = "n_NX", label = "n_NX", value = defPars_HX$n_NX),
-                      numericInput(inputId = "j_Xm", label = "j_Xm", value = defPars_HX$j_Xm),
-                      numericInput(inputId = "K_X", label = "K_X", value = defPars_HX$K_X)
+                      numericInput(inputId = "n_NX", label = div("n_NX", span(helpText("Molar N:C ratio in prey biomass (no units)", style = "font-size:8pt"))), value = defPars_HX$n_NX, step = 0.1),
+                      numericInput(inputId = "j_Xm", label = div("j_Xm", span(helpText("Maximum uptake of prey into host (C-mol X/C-mol H/d)", style = "font-size:8pt"))), value = defPars_HX$j_Xm, step = 0.01),
+                      numericInput(inputId = "K_X", label = div("K_X", span(helpText("Half saturation constant for host uptake of prey (C-mol X/L)", style = "font-size:8pt"))), value = defPars_HX$K_X, step = 1e-7)
                     )
                   )
                 ),
-                column(6, "Symbiont Parameters", 
-                       numericInput(inputId="numSymbionts", label="Number of Symbionts", value=1, min = 1),
+                column(6, h3("Symbiont Parameters"), 
+                       numericInput(inputId="numSymbionts", label=div("Number of Symbionts", span(helpText("The recommended maximum for symbionts is eight.", style = "font-size:8pt"))), value=1, min = 1),
                        uiOutput("symbPars"))
-              )
+              ),
+              checkboxInput(inputId="enableSS", label="Enable Steady State Page", value = F)
             ),
-            tabPanel("Plots",
+            tabPanel("Select Plots",
                      helpText("Selected Plots will be shown in the model tab after the model is run. If no plots are selected, the plots from the previous run will be preserved."),
                      fluidPage(
                        fluidRow(
@@ -121,11 +122,12 @@ ui <- fluidPage(
                      )
                   )
             ),
-            tabPanel("Model",
-                     actionButton(inputId="run", label="Run"),
-                     textOutput(outputId="time"),
+            tabPanel("View Results", value = "results",
+                     textOutput(outputId="status"),
                      uiOutput("plots")
-            )
+            ),
+            tabPanel("Steady State", value = "SSPanel",
+                     uiOutput("SSUI"))
         )
       )
   )
