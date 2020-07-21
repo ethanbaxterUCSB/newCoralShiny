@@ -7,7 +7,7 @@ synth <- function(substrateOne, substrateTwo, max) {
   B <- as.numeric(substrateTwo)
   max <- as.numeric(max)
   
-  if (A==0 & B==0) {return(0)}
+  if (A==0 && B==0) {return(0)}
   
   val <- (A * B * (A + B) * max)/(A^2 * B + A * B^2 + A^2 * max + A * B * max + B^2 * max)
   #val <- 1 / ((1 / max) + (1 / A) + (1 / B) - (1 / (A + B)))

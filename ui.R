@@ -47,7 +47,7 @@ ui <- fluidPage(
                     list("Min to Max", "Max to Min", "Sinusoid"))),
     
         mainPanel(
-          tabsetPanel(id = "mainPanel",
+          tabsetPanel(id = "tabs",
         
             tabPanel("Parameters",
               conditionalPanel(condition = "input.run==0", textOutput(outputId="welcome")),
@@ -80,7 +80,7 @@ ui <- fluidPage(
                        numericInput(inputId="numSymbionts", label=div("Number of Symbionts", span(helpText("The recommended maximum for symbionts is eight.", style = "font-size:8pt"))), value=1, min = 1),
                        uiOutput("symbPars"))
               ),
-              checkboxInput(inputId="enableSS", label="Enable Steady State Page", value = F)
+              checkboxInput(inputId="enableSS", label="Enable Steady State Tab", value = F)
             ),
             tabPanel("Select Plots",
                      helpText("Selected Plots will be shown in the model tab after the model is run. If no plots are selected, the plots from the previous run will be preserved."),
@@ -126,7 +126,7 @@ ui <- fluidPage(
                      textOutput(outputId="status"),
                      uiOutput("plots")
             ),
-            tabPanel("Steady State", value = "SSPanel",
+            tabPanel("Steady State", value = "SSTab",
                      uiOutput("SSUI"))
         )
       )

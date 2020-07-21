@@ -1,13 +1,21 @@
 library(shiny)
 source("defPars.R")
 source("runCoral.R")
+source("runCoralSS.R")
 source("coralPlots.R")
 
 server <- function(input, output, session) {
   
+  #---------------
+  #Welcome Message
+  #---------------
+  
   output$welcome <- renderText("Welcome! If you would like to do so, see the default example run by pressing the Run button in the upper left corner.")
   
-  #Generate parameters UI
+  #-----------------------
+  #Render Parameter Inputs
+  #-----------------------
+  
   output$symbPars <- renderUI({
     outVec <- c()
     
@@ -18,7 +26,10 @@ server <- function(input, output, session) {
     return(outVec)
   })
   
-  #Returns num symbiont inputs
+  #-----------------------
+  #Create Parameter inputs
+  #-----------------------
+  
   symbInput <- function(num) {
     
     S <- defPars_S(1)
@@ -48,100 +59,198 @@ server <- function(input, output, session) {
     return(inputs)
   }
   
-  #Reads input, runs model, and renders output
+  #---------------------------
+  #Perform run on button press
+  #---------------------------
+  
   updateInputsAndRun <- observeEvent(input$run, {
-    withProgress(message = "Initializing Model...", {
-      updateTabsetPanel(session = session, inputId = "mainPanel", selected = "results")
+    #If looking at Steady State tab, perform SS run
+    if (input$tabs == "SSTab" && input$enableSS) {
+      withProgress(message = "Initializing Steady State Run...", {
+        
+        #Create Environment vector
+        env <- c(L = as.numeric(input$L[1]), N = as.numeric(input$N[1])*1e-7, X = as.numeric(input$X[1])*1e-8)
+        
+        #Collect Pars
+        pars <- collectPars(num = input$numSymbionts)
+        
+        #Create X-Axis vector
+        xAxis <- seq(from = input$xMin, to = input$xMax, by = input$xRes)
+        
+        #Create vertical matrix for data storage
+        yAxis <- xAxis
     
-      start <- proc.time()[3]
-    
-      #Create environment descriptor lists from inputs
-      L <- c(as.numeric(input$L[1]), as.numeric(input$L[2]), as.numeric(input$Lf))
-      N <- c(as.numeric(input$N[1])*10^-7, as.numeric(input$N[2])*10^-7, as.numeric(input$Nf))
-      X <- c(as.numeric(input$X[1])*10^-8, as.numeric(input$X[2])*10^-8, as.numeric(input$Xf))
-    
-      #Create time vector from inputs
-      time <- seq(0,input$modelLength,input$dt)
-    
-      #Create initial environment
-      env <- environment(time=time, L=L, N=N, X=X)
-    
-      #Create pars
-      pars <- collectPars(num = input$numSymbionts)
-    }) 
-    withProgress(message = "Running Model...", {
-      #Run Model
-      coral <- runCoral(time = time, env = env, pars_HX = pars$HX, pars_S = pars$S)
-    }) 
-    withProgress(message = "Initializing plots...", {
-      #Create data presentation
-      vec <- 3:length(time)
-    
-      varNames <- c("L", "N", "X", "j_X", "j_N", "r_NH", "rho_N", "j_eC", "j_CO2", "j_HG","r_CH", "dH.Hdt", "dH.dt", 
-                       "H", "j_L", "j_CP", "j_eL", "j_NPQ", "j_SG", "rho_C", "j_ST", "r_CS", "c_ROS", "dS.Sdt", 
-                       "dS.dt", "S", "S.t", "SH", "HS")
-      plotFuncNames <- varNames
-      plotNamesIn <- varNames
-    
-      #Format plotFuncNames, plotNamesIn, and plotNamesOut
-      for (n in 1:length(varNames)) {
-      plotNamesIn[n] <- paste0("plot.", varNames[n])
-      plotFuncNames[n] <- paste0("coralPlots.", varNames[n])
-      }
-    
-      #Logical vector of which plots to render
-      toPlot <- unlist(lapply(reactiveValuesToList(input)[plotNamesIn], 
-                     function(i) {unlist(i)}))
-    
-      #Get number of plots to be rendered
-      numPlots <- {
-        n <- 0
-        for (bool in toPlot) {
-          if (bool) {
-            n <- n + 1
+      })
+      withProgress(message = "Computing Steady State Run...", {
+        i <- 1
+        for (x in xAxis) {
+          withProgress(message = paste0("Run ", i, "..."), {
+            #This is kinda gross but works, if xAxisChoice isn't a parameter there then it doesn't matter since it will never be called
+            try(pars$S[[input$xAxisChoice,1]] <- x)
+            pars$HX[[input$xAxisChoice]] <- x
+            env[[input$xAxisChoice]] <- x
+            
+            #Run SS
+            myRun <- runCoralSS(env = env, pars_HX = pars$HX, pars_S = pars$S)
+            
+            #Populate spot i in matrix
+            yAxis[[i]] <- unlist(myRun[input$yAxisChoice])[length(unlist(myRun[input$yAxisChoice]))]
+            
+            #Update index i
+            i <- i + 1
+          })
+        }
+      })
+      withProgress(message = "Rendering Steady State Plot...", {
+        output$plots <- renderUI(plotOutput("SSPlot", height = 280, width = 560))
+        output$SSPlot <- renderPlot({
+          plot(x = xAxis, y = yAxis, xlab = input$xAxisChoice, ylab = paste(input$yAxisChoice, "Steady States"), main = paste(input$yAxisChoice, "Steady States Across Varied", input$xAxisChoice), type = "p", lwd = 3)
+        })
+      })
+      
+    } else { #If not looking at Steady State tab, perform normal run
+      withProgress(message = "Initializing Run...", {
+        
+        start <- proc.time()[3]
+        
+        #Create environment descriptor lists from inputs
+        L <- c(as.numeric(input$L[1]), as.numeric(input$L[2]), as.numeric(input$Lf))
+        N <- c(as.numeric(input$N[1])*10^-7, as.numeric(input$N[2])*10^-7, as.numeric(input$Nf))
+        X <- c(as.numeric(input$X[1])*10^-8, as.numeric(input$X[2])*10^-8, as.numeric(input$Xf))
+        
+        #Create time vector from inputs
+        time <- seq(0,input$modelLength,input$dt)
+        
+        #Create initial environment
+        env <- environment(time=time, L=L, N=N, X=X)
+        
+        #Create pars
+        pars <- collectPars(num = input$numSymbionts)
+      }) 
+      withProgress(message = "Computing Run...", {
+        #Run Model
+        coral <- runCoral(time = time, env = env, pars_HX = pars$HX, pars_S = pars$S)
+      }) 
+      withProgress(message = "Initializing plots...", {
+        #Create data presentation
+        vec <- 3:length(time)
+        
+        varNames <- c("L", "N", "X", "j_X", "j_N", "r_NH", "rho_N", "j_eC", "j_CO2", "j_HG","r_CH", "dH.Hdt", "dH.dt", 
+                      "H", "j_L", "j_CP", "j_eL", "j_NPQ", "j_SG", "rho_C", "j_ST", "r_CS", "c_ROS", "dS.Sdt", 
+                      "dS.dt", "S", "S.t", "SH", "HS")
+        plotFuncNames <- varNames
+        plotNamesIn <- varNames
+        
+        #Format plotFuncNames, plotNamesIn, and plotNamesOut
+        for (n in 1:length(varNames)) {
+          plotNamesIn[n] <- paste0("plot.", varNames[n])
+          plotFuncNames[n] <- paste0("coralPlots.", varNames[n])
+        }
+        
+        #Logical vector of which plots to render
+        toPlot <- unlist(lapply(reactiveValuesToList(input)[plotNamesIn], 
+                                function(i) {unlist(i)}))
+        
+        #Get number of plots to be rendered
+        numPlots <- {
+          n <- 0
+          for (bool in toPlot) {
+            if (bool) {
+              n <- n + 1
+            }
+          }
+          n
+        }
+      }) 
+      withProgress(message = paste("Rendering", numPlots, "plots..."), {
+        #Set status to plotting
+        output$status <- renderText(paste("Rendering", numPlots, "plots..."))
+        
+        if (numPlots > 0) {
+          
+          #Instert number of plots to UI
+          output$plots <- renderUI({
+            outList <- lapply(1:numPlots, function(i) {
+              plotName <- paste0("plot", i)
+              plotOutput(plotName, height = 280, width = 560)
+            })
+            tagList(outList)
+          })
+          
+          #Shorten function name vector with toPlot
+          plotFuncNames <- plotFuncNames[toPlot]
+          modifiedNames <- varNames[toPlot]
+          
+          for (i in 1:numPlots) {
+            local({
+              myI <- i
+              output[[paste0("plot", myI)]] <- renderPlot(do.call(plotFuncNames[myI], list(time, as.matrix(get(modifiedNames[myI], coral)))))
+            })
           }
         }
-        n
-      }
-    }) 
-    withProgress(message = paste("Rendering", numPlots, "plots..."), {
-      #Set status to plotting
-      output$status <- renderText(paste("Rendering", numPlots, "plots..."))
+        #Final status
+        output$status <- renderText(paste("Time to complete (including time to plot): ", proc.time()[3]-start, " seconds"))
+      })
+    }
     
-      if (numPlots > 0) {
-    
-        #Instert number of plots to UI
-        output$plots <- renderUI({
-          outList <- lapply(1:numPlots, function(i) {
-            plotName <- paste0("plot", i)
-            plotOutput(plotName, height = 280, width = 560)
-          })
-          tagList(outList)
-        })
-    
-        #Shorten function name vector with toPlot
-        plotFuncNames <- plotFuncNames[toPlot]
-        modifiedNames <- varNames[toPlot]
-      
-        for (i in 1:numPlots) {
-          local({
-            myI <- i
-            output[[paste0("plot", myI)]] <- renderPlot(do.call(plotFuncNames[myI], list(time, as.matrix(get(modifiedNames[myI], coral)))))
-          })
-        }
-      }
-      output$status <- renderText(paste("Time to complete (including time to plot): ", proc.time()[3]-start, " seconds"))
-    })
+    #Send user to View Results tab
+    updateTabsetPanel(session = session, inputId = "tabs", selected = "results")
   })
   
+  #--------------------------
+  #Render Steady State tab UI
+  #--------------------------
+  
   output$SSUI <- renderUI(
-    tagList(conditionalPanel(condition = "input.enableSS==true", {
-      helpText("This tab requires a good understanding of the model to utilize well. Please make sure you have said understanding before using it.")
-    }),
-    conditionalPanel(condition = "input.enableSS==false", {
-      helpText("This tab is locked by default. If you would like to explore the more complex steady state runs, please feel free to reactivate it.")
-    }))
+    tagList(
+      
+      #Enabled
+      conditionalPanel(condition = "input.enableSS==true", {
+        fluidPage(
+          helpText("This tab requires a good understanding of the model to utilize well. Please make sure you have said understanding before using it.", style = "color:green"),
+          fluidRow(
+            column(6, h3("Information"),
+                   h4("How to Use This Tab"),
+                   p("First, this type of run requires a constant environment. A length 3 vector representative of the environment will thus be created with the leftmost values from the environmental slider inputs on the left."),
+                   p("Second, select an x-axis and a y-axis for the plot from the inputs below and enter the resolution and range for the x-axis. The resolution of the x-axis is how far apart each element of that axis will be. The resolution and range together determine how many points will be calculated. For example, a resolution of 0.1 and a range of 0 to 1 (closed interval) will result in 11 data points {0, 0.1, ..., 1}."),
+                   p("Third, symbiont and host parameters will still be taken from the Parameters tab. You should already understand how that works. Note that if there are parameters for more than one symbiont available, only those for Symbiont 1 will be used."),
+                   p("Finally, hit the Run button and view the output of your selected inputs. You will automatically be taken to the View Results tab.")),
+            column(6, h3("Inputs"),
+                   textOutput("LSS"),
+                   textOutput("NSS"),
+                   textOutput("XSS"),
+                   radioButtons(inputId = "yAxisChoice", label = "Y-Axis Choice", choiceNames = c("Symbiont to Host biomass ratio", "Specic Host Growth Rate"), choiceValues = c("SH","dH.Hdt")),
+                   fluidRow(
+                     column(6,
+                      radioButtons(inputId = "xAxisChoice", label = "X-Axis Choice", choices = c("L", "N", "X", "j_CP", "k_CO2", "aStar", "j_Nm", "K_N", "j_ST0", "j_HT0", "j_SGm", "j_HGm", "k_NPQ", "k_ROS", "b"))
+                     ),
+                     column(6,
+                      numericInput(inputId = "xMin", label = "X-Axis Lower Bound", value = 0),
+                      numericInput(inputId = "xMax", label = "X-Axis Upper Bound", value = 1),
+                      numericInput(inputId = "xRes", label = "X-Axis Resolution", value = 0.1),
+                      textOutput("numPoints"),
+                      helpText("Note: 10-15 points is the recommended maximum. Otherwise, it will take a long time to compute the full Steady State run.")
+                     )
+                   ),
+            )
+          )
+        )
+      }),
+      
+      #Disabled
+      conditionalPanel(condition = "input.enableSS==false", {
+        helpText("This tab is locked by default. If you would like to explore the more complex steady state runs, please feel free to reactivate it.", style = "color:red")
+      })
+    )
   )
+  
+  #Tell user how many points they will be computing in an SS run
+  output$numPoints <- renderText(paste(length(seq(from = input$xMin, to = input$xMax, by = input$xRes)), "points to be computed"))
+  
+  
+  #--------------------
+  #CollectPars function
+  #--------------------
   
   collectPars <- function(num) {
     

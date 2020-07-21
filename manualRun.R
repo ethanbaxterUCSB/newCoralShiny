@@ -17,7 +17,8 @@ run <- {
 runSS <- {
   pars_HX <- defPars_HX
   pars_S <- defPars_S(1)
-  env <- c(L = 30, N = 1e-7, X = 1e-6)
+  pars_HX[["j_HT0"]] <- 10
+  env <- c(L = 20, N = 1e-7, X = 1e-6)
   coral <- runCoralSS(env = env, pars_HX = pars_HX, pars_S = pars_S)
   plot(1:length(unlist(coral$S)), unlist(coral$SH), "l")
 }
