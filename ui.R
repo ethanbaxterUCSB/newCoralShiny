@@ -126,9 +126,35 @@ ui <- fluidPage(
                      textOutput(outputId="status"),
                      uiOutput("plots")
             ),
+            tabPanel("Information",
+                     fluidPage(
+                       column(12,
+                              h3("Model Information"),
+                              p("The model that this shiny app is based off of is described in the paper \"A Dynamic Bioenergetic Model for Cora-Symbiodinium Symbioses and Coral Bleaching as an Alternate Stable State\" by Ross Cunning, Erik B. Muller, Ruth D. Gates, and Roger M. Nisbet. The paper can be found at the following web address."),
+                              div("(1): ", a("https://doi.org/10.1016/j.jtbi.2017.08.003", href = "https://doi.org/10.1016/j.jtbi.2017.08.003")),
+                              h5(), #For spacing
+                              p("It is recommended to have read at least the abstract of the paper, which follows later. Also, if you would like to interact directly with the model in R, the coRal R package is on gitHub."),
+                              div("(2): ", a("https://github.com/jrcunning/coRal", href = "https://github.com/jrcunning/coRal")),
+                              h5(), #spacing
+                              p("The code for the shiny app is also available on gitHub."),
+                              div("(3): ", a("https://github.com/ethanbaxterUCSB/newCoralShiny", href = "https://github.com/ethanbaxterUCSB/newCoralShiny")),
+                              h4(), #spacing
+                              h4("Paper Abstract"),
+                              h6("(Taken directly from link 1 above.)"),
+                              p("Coral reef ecosystems owe their ecological success – and vulnerability to climate change – to the symbiotic metabolism of corals and Symbiodinium spp. The urgency to understand and predict the stability and breakdown of these symbioses (i.e., coral ‘bleaching’) demands the development and application of theoretical tools. Here, we develop a dynamic bioenergetic model of coral-Symbiodinium symbioses that demonstrates realistic steady-state patterns in coral growth and symbiont abundance across gradients of light, nutrients, and feeding. Furthermore, by including a mechanistic treatment of photo-oxidative stress, the model displays dynamics of bleaching and recovery that can be explained as transitions between alternate stable states. These dynamics reveal that “healthy” and “bleached” states correspond broadly to nitrogen- and carbon-limitation in the system, with transitions between them occurring as integrated responses to multiple environmental factors. Indeed, a suite of complex emergent behaviors reproduced by the model (e.g., bleaching is exacerbated by nutrients and attenuated by feeding) suggests it captures many important attributes of the system; meanwhile, its modular framework and open source R code are designed to facilitate further problem-specific development. We see significant potential for this modeling framework to generate testable hypotheses and predict integrated, mechanistic responses of corals to environmental change, with important implications for understanding the performance and maintenance of symbiotic systems."),
+                              h4("Graphic"),
+                              p("Below is Figure 1 (and its description) from the mentioned paper. It is quite intuitive and may serve as a handy tool for exploration of the model and this shiny app."),
+                              img(src = "fig1-with-description.png"),
+                              h4("About the Developers"),
+                              p("This shiny app was developed by Ethan Baxter, under the mentorship of Drs. Alexandra Brown and Ferdinand Pfab, while working in the Moeller Lab at the University of California, Santa Barbara."),
+                              uiOutput("contactForm")
+                       )
+                     )
+            ),
             tabPanel("Steady State", value = "SSTab",
                      uiOutput("SSUI"))
         )
       )
-  )
+  ),
+  helpText("Last updated 07/22/2020 by Ethan Baxter, UCSB undergraduate, Moeller Lab. Have a great day!")
 )

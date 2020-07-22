@@ -207,6 +207,7 @@ server <- function(input, output, session) {
       #Enabled
       conditionalPanel(condition = "input.enableSS==true", {
         fluidPage(
+          img(src = "lock-unlocked.png", width = 15, height = 15),
           helpText("This tab requires a good understanding of the model to utilize well. Please make sure you have said understanding before using it.", style = "color:green"),
           fluidRow(
             column(6, h3("Information"),
@@ -239,7 +240,7 @@ server <- function(input, output, session) {
       
       #Disabled
       conditionalPanel(condition = "input.enableSS==false", {
-        helpText("This tab is locked by default. If you would like to explore the more complex steady state runs, please feel free to reactivate it.", style = "color:red")
+        div(img(src = "lock-locked.png", width = 15, height = 15), helpText("This tab is locked by default. If you would like to explore the more complex steady state runs, please feel free to reactivate it.", style = "color:red"))
       })
     )
   )
@@ -299,4 +300,25 @@ server <- function(input, output, session) {
     
     return(list(HX = HX, S = S))
   }
+  
+  #===================
+  #Render Contact Form
+  #===================
+  output$contactForm <- renderUI({
+    HTML("<form
+            action=\"https://formspree.io/mbjzqgnd\"
+            method=\"POST\"
+          >
+          <label>
+            Your email:
+            <input type=\"text\" name=\"_replyto\">
+          </label>
+          <label>
+            Your message:
+            <textarea name=\"message\"></textarea>
+          </label>
+            <button type=\"submit\">Send</button>
+        </form>"
+    )
+  })
 }
