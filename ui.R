@@ -156,5 +156,5 @@ ui <- fluidPage(
         )
       )
   ),
-  helpText("Last updated 07/22/2020 by Ethan Baxter, UCSB undergraduate, Moeller Lab. Have a great day!")
+  helpText("Last updated 07/24/2020 by Ethan Baxter, UCSB undergraduate, Moeller Lab. Have a great day!")
 )

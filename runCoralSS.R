@@ -116,7 +116,7 @@ runCoralSS <- function(env, pars_HX, pars_S) {
     
     #Host
     j_HG[t] <- synth(substrateOne = (pars_HX$y_C * (rho_C.t/H[[t-1]] + j_X[[t]])), substrateTwo = ((j_N[[t]] + pars_HX$n_NX * j_X[[t]] + r_NH[[t]]) / pars_HX$n_NH), max = (pars_HX$j_HGm)) #Host biomass production rate
-    rho_N[t] <- alwaysPositive(j_N[[t]] + pars_HX$n_NX * j_X[[t]] + r_NH[[t]] - pars_HX$n_NH * j_HG[[t]]) 
+    rho_N[t] <- alwaysPositive(j_N[[t]] + pars_HX$n_NX * j_X[[t]] + r_NH[[t]] - pars_HX$n_NH * j_HG[[t]] / pars_HX$y_C) 
     j_eC[t] <- alwaysPositive(j_X[[t]] + rho_C.t/H[[t-1]] - j_HG[[t]] / pars_HX$y_C)
     r_CH[t] <- pars_HX$sigma_CH * (pars_HX$j_HT0 + (1-pars_HX$y_C) * j_HG[[t]] / pars_HX$y_C)
     j_CO2[t] <- pars_HX$k_CO2 * j_eC[[t]]
